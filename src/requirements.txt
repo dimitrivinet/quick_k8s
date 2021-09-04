@@ -5,3 +5,4 @@ cryptography==3.4.8
 python-multipart==0.0.5
 passlib==1.7.4
 bcrypt==3.2.0
+kubernetes==18.20.0

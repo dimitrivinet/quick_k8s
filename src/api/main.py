@@ -1,15 +1,18 @@
 import os
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Iterator, Optional
 
 import dotenv
-from fastapi import Depends, FastAPI, HTTPException, status, File, UploadFile
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, APIKeyQuery
+import kubernetes
+import yaml
+from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, status
+from fastapi.security import (APIKeyQuery, OAuth2PasswordBearer,
+                              OAuth2PasswordRequestForm)
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
-from . import dummy_db
+from . import dummy_db, k8s
 
 dotenv.load_dotenv()
 
@@ -17,6 +20,9 @@ dotenv.load_dotenv()
 # # openssl rand -hex 32
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
+TARGET_NAMESPACE = os.getenv("TARGET_NAMESPACE")
+
+
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
@@ -155,7 +161,17 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
 
 
 @app.post("/k8s/deployments", tags=["k8s"])
-async def create_deployment(values_file: UploadFile = File(...), current_user: User = Depends(get_current_active_user)):
-    filename = values_file.filename
+async def create_deployment(yaml_file: UploadFile = File(...), current_user: User = Depends(get_current_active_user)):
+    filename = yaml_file.filename
 
-    return {"filename": filename}
+    yamls_as_dicts: Iterator = yaml.safe_load_all(yaml_file.file)
+
+    validation_results = []
+    for doc in yamls_as_dicts:
+        validation_result = k8s.validate(doc, TARGET_NAMESPACE)
+
+        if not validation_result.result:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail=validation_result.reason)
+
+    return {"filename": filename, }
