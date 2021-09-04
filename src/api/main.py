@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from typing import Iterator, Optional
 
 import dotenv
-import kubernetes
 import yaml
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile, status
 from fastapi.security import (APIKeyQuery, OAuth2PasswordBearer,
@@ -23,7 +22,7 @@ ALGORITHM = os.getenv("ALGORITHM")
 TARGET_NAMESPACE = os.getenv("TARGET_NAMESPACE")
 
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 144
 
 
 openapi_tags_metadata = [
@@ -161,12 +160,16 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
 
 
 @app.post("/k8s/deployments", tags=["k8s"])
-async def create_deployment(yaml_file: UploadFile = File(...), current_user: User = Depends(get_current_active_user)):
+async def create_deployment(yaml_file: UploadFile = File(...),
+                            namespace_exists: None = Depends(
+                                k8s.check_namespace(TARGET_NAMESPACE)),
+                            current_user: User = Depends(
+                                get_current_active_user)):
     filename = yaml_file.filename
 
     yamls_as_dicts: Iterator = yaml.safe_load_all(yaml_file.file)
+    yamls_as_dicts = [yaml_as_dict for yaml_as_dict in yamls_as_dicts]
 
-    validation_results = []
     for doc in yamls_as_dicts:
         validation_result = k8s.validate(doc, TARGET_NAMESPACE)
 
@@ -174,4 +177,14 @@ async def create_deployment(yaml_file: UploadFile = File(...), current_user: Use
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                                 detail=validation_result.reason)
 
-    return {"filename": filename, }
+    deployed = []
+    for doc in yamls_as_dicts:
+        deployment_result = k8s.deploy(doc, TARGET_NAMESPACE)
+
+        if not deployment_result.result:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail=deployment_result.reason)
+
+        deployed.append(deployment_result.info)
+
+    return {"deployed": deployed, "filename": filename}

@@ -1,16 +1,56 @@
-from kubernetes import client, config
+import json
+from dataclasses import dataclass
+from typing import Optional, Union
+
+from kubernetes import config, client
+
 
 config.load_kube_config()
 
-def deploy():
-    pass
+k8s_core_v1 = client.CoreV1Api()
+k8s_apps_v1 = client.AppsV1Api()
 
-# v1 = client.CoreV1Api()
 
-# print("listing all pods with their IPs:")
-# ret = v1.list_pod_for_all_namespaces(watch=False)
-# for item in ret.items:
-#     print("%s\t%s\t%s" % (item.status.pod_ip, item.metadata.namespace, item.metadata.name))
+@dataclass
+class DeploymentResult():
+    result: bool
+    info: Optional[Union[str, dict, list]] = None
 
-# apps_v1 = client.AppsV1Api()
-# apps_v1.create_namespaced_deployment(body={}, namespace="", dry_run="All")
+
+def deploy_one(resource_type: str,
+               data: dict,
+               target_namespace: str) -> str:
+
+    if resource_type == "deployment":
+        resp = k8s_apps_v1.create_namespaced_deployment(
+            body=data,
+            namespace=target_namespace
+        )
+    elif resource_type == "service":
+        resp = k8s_core_v1.create_namespaced_service(
+            body=data,
+            namespace=target_namespace
+        )
+
+    return resp.metadata.name
+
+
+def deploy(data: dict, target_namespace: str) -> DeploymentResult:
+
+    resource_type = data.get("kind").lower()
+
+    try:
+        result = deploy_one(resource_type, data, target_namespace)
+    except client.exceptions.ApiException as e:
+        print(f"EXCEPTION! {e}")
+        # body = json.loads(e.body)
+
+        # error_details = {
+        #     "message": "Deployment failed.",
+        #     "causes": body["details"]["causes"]
+        # }
+
+        # return DeploymentResult(False, error_details)
+        return DeploymentResult(False, "")
+
+    return DeploymentResult(True, result)
