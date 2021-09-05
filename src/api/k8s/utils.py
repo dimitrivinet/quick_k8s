@@ -1,10 +1,19 @@
-from kubernetes import config, client
+import os
 
+import dotenv
+from kubernetes import client, config
 
-config.load_kube_config()
+dotenv.load_dotenv()
+
+if os.getenv("KUBERNETES_SERVICE_HOST") is None:
+    config.load_kube_config()
+else:
+    config.load_incluster_config()
+
 
 k8s_core_v1 = client.CoreV1Api()
 k8s_apps_v1 = client.AppsV1Api()
+
 
 def check_namespace(namespace_name: str):
     def check_namespace_inner() -> None:

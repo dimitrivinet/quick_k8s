@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quick-k8s-manager-deployment
+  labels:
+    app: quick-k8s-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quick-k8s-manager
+  template:
+    metadata:
+      labels:
+        app: quick-k8s-manager
+    spec:
+      serviceAccountName: quick-k8s-manager
+      automountServiceAccountToken: true
+      containers:
+      - name: quick-k8s-manager
+        image: dimitrivinet/quick-k8s-v2:dev
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        env:
+          - name: SECRET_KEY
+            value: "6fa46d584e94e64322e9951378c2daccb3775107e8c1cc4bc4a28f7f366f9bde"
+          - name: ALGORITHM
+            value: "HS256"
+          - name: TARGET_NAMESPACE
+            value: "quick-k8s"

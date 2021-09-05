@@ -5,14 +5,12 @@ USER appuser
 WORKDIR /home/appuser
 ENV PATH="/home/appuser/.local/bin:${PATH}"
 
-RUN /usr/local/bin/python3 -m pip install --upgrade pip
+RUN python3 -m pip install --upgrade pip
 
 COPY requirements.txt app/requirements.txt
 RUN pip3 install --user -r app/requirements.txt
 
-COPY api /api
+COPY api ./api
 
-WORKDIR /api
-
-CMD ["uvicorn", "main:app", "--reload", "--host=0.0.0.0"]
+CMD ["uvicorn", "api.main:app", "--host=0.0.0.0" ]
 # CMD ["tail", "-f", "/dev/null"]

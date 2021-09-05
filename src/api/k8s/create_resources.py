@@ -1,11 +1,14 @@
-import json
+import os
 from dataclasses import dataclass
 from typing import Optional, Union
 
-from kubernetes import config, client
+from kubernetes import client, config
 
+if os.getenv("KUBERNETES_SERVICE_HOST") is None:
+    config.load_kube_config()
+else:
+    config.load_incluster_config()
 
-config.load_kube_config()
 
 k8s_core_v1 = client.CoreV1Api()
 k8s_apps_v1 = client.AppsV1Api()

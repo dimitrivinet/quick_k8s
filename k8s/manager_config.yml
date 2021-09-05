@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: quick-k8s-manager
+automountServiceAccountToken: false
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: quick-k8s-manager
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: quick-k8s-manager
+subjects:
+- kind: ServiceAccount
+  name: quick-k8s-manager
+  namespace: quick-k8s
+roleRef:
+  kind: ClusterRole
+  name: quick-k8s-manager
+  apiGroup: rbac.authorization.k8s.io
