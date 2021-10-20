@@ -57,8 +57,9 @@ def validate(data: dict, target_namespace: str) -> ValidationResult:
         body = json.loads(e.body)
 
         error_details = {
-            "message": "YAML file validation failed.",
-            "causes": body["details"]["causes"]
+            "error": "YAML file validation failed.",
+            "message": body["message"],
+            "causes": body.get("details", {}).get("causes")
         }
 
         return ValidationResult(False, error_details)

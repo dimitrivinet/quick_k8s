@@ -4,6 +4,12 @@ from typing import Optional, Union
 
 from kubernetes import client, config
 
+
+CHILD_ROLE_NAME = "quick-k8s-child"
+CHILD_CPU_LIMIT = ""
+CHILD_RAM_LIMIT = ""
+
+
 if os.getenv("KUBERNETES_SERVICE_HOST") is None:
     config.load_kube_config()
 else:
@@ -20,11 +26,25 @@ class DeploymentResult():
     info: Optional[Union[str, dict, list]] = None
 
 
+def add_role(data: dict) -> dict:
+    data["spec"]["template"]["spec"]["serviceAccountName"] = CHILD_ROLE_NAME
+    data["spec"]["template"]["spec"]["automountServiceAccountToken"] = True
+
+    return data
+
+
+def add_resource_limits(data: dict) -> dict:
+    return data
+
+
 def deploy_one(resource_type: str,
                data: dict,
                target_namespace: str) -> str:
 
     if resource_type == "deployment":
+        data = add_role(data)
+        data = add_resource_limits(data)
+
         resp = k8s_apps_v1.create_namespaced_deployment(
             body=data,
             namespace=target_namespace

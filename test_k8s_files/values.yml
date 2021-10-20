@@ -1,0 +1,25 @@
+image:
+  #  defaults to hello-world
+  repository: thomasj27/wm-study-1
+  # defaults to latest
+  tag: latest
+  #  defaults to Always
+  pullPolicy: Always
+  #  exposed port
+  containerPort: 27140
+  # web path to probe readiness and liveliness
+  probePath: /wanderingmind/home
+# use a service to expose your application
+createService: true
+service:
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 27140
+      name: http
+    - protocol: TCP
+      port: 443
+      targetPort: 27140
+      name: https
+  externalIP: 192.168.1.233

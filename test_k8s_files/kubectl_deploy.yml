@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-kubectl
+  labels:
+    app: test-kubectl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-kubectl
+  template:
+    metadata:
+      labels:
+        app: test-kubectl
+    spec:
+      serviceAccountName: quick-k8s-manager
+      automountServiceAccountToken: true
+      containers:
+      - name: test-kubectl
+        image: alpine/k8s:1.19.8
+        imagePullPolicy: Always
+        command: ["tail"]
+        args: ["-f", "/dev/null"]
+        ports:
+        - containerPort: 8000
+        env:
+          - name: SECRET_KEY
+            value: "6fa46d584e94e64322e9951378c2daccb3775107e8c1cc4bc4a28f7f366f9bde"
+          - name: ALGORITHM
+            value: "HS256"
+          - name: TARGET_NAMESPACE
+            value: "quick-k8s"

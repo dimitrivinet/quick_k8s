@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wm-study
+  labels:
+    app: wm-study
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wm-study
+  template:
+    metadata:
+      labels:
+        app: wm-study
+    spec:
+      containers:
+        - name: wm-study
+          image: thomasj27/wm-study-1:latest
+          ports:
+            - containerPort: 27140
+          resources:
+            limits:
+              cpu: 1000m
+              memory: 4092Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wm-service
+spec:
+  selector:
+    app: wm-study
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 27140
+  externalIPs:
+    - 192.168.1.233
