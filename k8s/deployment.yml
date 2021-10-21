@@ -14,8 +14,8 @@ spec:
       labels:
         app: quick-k8s-manager
     spec:
-      # serviceAccountName: quick-k8s-manager
-      # automountServiceAccountToken: true
+      serviceAccountName: quick-k8s-manager
+      automountServiceAccountToken: true
       containers:
       - name: quick-k8s-manager
         image: dimitrivinet/quick-k8s-v2:dev

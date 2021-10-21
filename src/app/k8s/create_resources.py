@@ -21,7 +21,7 @@ k8s_apps_v1 = client.AppsV1Api()
 
 
 @dataclass
-class DeploymentResult():
+class DeploymentResult:
     result: bool
     info: Optional[Union[str, dict, list]] = None
 
@@ -37,22 +37,18 @@ def add_resource_limits(data: dict) -> dict:
     return data
 
 
-def deploy_one(resource_type: str,
-               data: dict,
-               target_namespace: str) -> str:
+def deploy_one(resource_type: str, data: dict, target_namespace: str) -> str:
 
     if resource_type == "deployment":
-        # data = add_role(data)
+        data = add_role(data)
         data = add_resource_limits(data)
 
         resp = k8s_apps_v1.create_namespaced_deployment(
-            body=data,
-            namespace=target_namespace
+            body=data, namespace=target_namespace
         )
     elif resource_type == "service":
         resp = k8s_core_v1.create_namespaced_service(
-            body=data,
-            namespace=target_namespace
+            body=data, namespace=target_namespace
         )
 
     return resp.metadata.name

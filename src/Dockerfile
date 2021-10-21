@@ -10,7 +10,7 @@ RUN python3 -m pip install --upgrade pip
 COPY requirements.txt app/requirements.txt
 RUN pip3 install --user -r app/requirements.txt
 
-COPY api ./api
+COPY app ./app
 
-CMD ["uvicorn", "api.main:app", "--host=0.0.0.0" ]
+CMD ["uvicorn", "app.main:app", "--host=0.0.0.0" ]
 # CMD ["tail", "-f", "/dev/null"]

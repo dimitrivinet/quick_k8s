@@ -1,8 +1,13 @@
 IM_NAME=dimitrivinet/quick-k8s-v2
 IM_TAG=dev
 
+all: build push
+
 run_api:
-	uvicorn src.api.main:app --reload
+	cd src && uvicorn app.main:app --reload
+
+run:
+	docker run -it --rm ${IM_NAME}:${IM_TAG} bash
 
 build:
 	docker build -t ${IM_NAME}:${IM_TAG} ./src
