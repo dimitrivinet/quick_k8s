@@ -42,7 +42,7 @@ def deploy_one(resource_type: str,
                target_namespace: str) -> str:
 
     if resource_type == "deployment":
-        data = add_role(data)
+        # data = add_role(data)
         data = add_resource_limits(data)
 
         resp = k8s_apps_v1.create_namespaced_deployment(
@@ -60,7 +60,7 @@ def deploy_one(resource_type: str,
 
 def deploy(data: dict, target_namespace: str) -> DeploymentResult:
 
-    resource_type = data.get("kind").lower()
+    resource_type = data.get("kind", "").lower()
 
     try:
         result = deploy_one(resource_type, data, target_namespace)

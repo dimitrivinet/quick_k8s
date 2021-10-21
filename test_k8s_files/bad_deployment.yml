@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wm-study
+  labels:
+    app: wm-study
+spec:
+  replicas: 1
+  selectro:
+    matchLabels:
+      app: wm-study
+  template:
+    metadata:
+      labels:
+        app: wm-study
+    spec:
+      containers:
+      - name: wm-study
+        image: thomasj27/wm-study-1:latest
+        ports:
+        - containerPort: 27140

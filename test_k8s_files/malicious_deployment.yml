@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: malicious
+  labels:
+    app: malicious
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: malicious
+  template:
+    metadata:
+      labels:
+        app: malicious
+    spec:
+      containers:
+      - name: malicious
+        image: bitnami/kubectl:latest
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
+      imagePullPolicy: Always
