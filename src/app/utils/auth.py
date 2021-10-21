@@ -1,7 +1,7 @@
 # pylint: disable=too-few-public-methods
 import os
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Literal, Optional, Union
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyQuery, OAuth2PasswordBearer
@@ -21,6 +21,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 api_key_scheme = APIKeyQuery(name="api_key")
+
 
 class Token(BaseModel):
     """Token class."""
@@ -49,6 +50,7 @@ class UserInDB(User):
 
     hashed_password: str
 
+
 def verify_password(plain_password, hashed_password):
     """Verify provided password against stored password."""
 
@@ -71,31 +73,39 @@ def get_user(db, username: Optional[str]) -> Optional[UserInDB]:
     return None
 
 
-def authenticate_user(fake_db, username: str, password: str):
-    """Authenticate user from provided username and passord."""
+def authenticate_user(
+    fake_db, username: str, password: str
+) -> Union[User, Literal[False]]:
+    """Authenticate user from provided username and passord.
+    Returns False if user doesn't exist or the password is incorrect."""
 
     user = get_user(fake_db, username)
+
     if user is None:
         return False
     if not verify_password(password, user.hashed_password):
         return False
-    return user
+
+    return User(**user.dict())
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create access token at login."""
 
     to_encode = data.copy()
+
     if expires_delta is not None:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
+
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     """Get current user from token."""
 
     credentials_exception = HTTPException(
@@ -103,6 +113,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -113,14 +124,17 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception from JWTError
 
     user = get_user(dummy_db.fake_users_db, username=token_data.username)
+
     if user is None:
         raise credentials_exception
-    return user
+
+    return User(**user.dict())
 
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
+async def get_current_active_user(current_user: UserInDB = Depends(get_current_user)) -> UserInDB:
     """Check if current user is active (not disabled)."""
 
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
+
     return current_user

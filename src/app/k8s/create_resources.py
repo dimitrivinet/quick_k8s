@@ -1,9 +1,9 @@
 import os
+import traceback
 from dataclasses import dataclass
 from typing import Optional, Union
 
 from kubernetes import client, config
-
 
 CHILD_ROLE_NAME = "quick-k8s-child"
 CHILD_CPU_LIMIT = ""
@@ -51,7 +51,7 @@ def deploy_one(resource_type: str, data: dict, target_namespace: str) -> str:
             body=data, namespace=target_namespace
         )
 
-    return resp.metadata.name
+    return resp
 
 
 def deploy(data: dict, target_namespace: str) -> DeploymentResult:
@@ -62,6 +62,7 @@ def deploy(data: dict, target_namespace: str) -> DeploymentResult:
         result = deploy_one(resource_type, data, target_namespace)
     except client.exceptions.ApiException as e:
         print(f"EXCEPTION! {e}")
+        print(traceback.format_exc())
         # body = json.loads(e.body)
 
         # error_details = {

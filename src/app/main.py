@@ -7,6 +7,8 @@ from app.utils import auth
 
 app = FastAPI()
 
+app.include_router(routers.router)
+
 
 @app.get("/")
 async def home():
@@ -19,6 +21,3 @@ async def read_users_me(
     current_user: auth.User = Depends(auth.get_current_active_user),
 ):
     return current_user
-
-
-app.include_router(routers.router)

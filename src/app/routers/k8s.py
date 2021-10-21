@@ -1,9 +1,10 @@
 import os
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, HTTPException, UploadFile, status, Depends
 import yaml
 
 from app import k8s
+from app.utils import auth
 
 TARGET_NAMESPACE = os.getenv("TARGET_NAMESPACE", "")
 
@@ -14,8 +15,10 @@ router = APIRouter(prefix="/k8s", tags=["k8s"])
 async def create_deployment(
     yaml_file: UploadFile = File(...),
     # namespace_exists: None = Depends(k8s.check_namespace(TARGET_NAMESPACE)),
-    # current_user: User = Depends(get_current_active_user),
+    current_user: auth.User = Depends(auth.get_current_active_user),
 ):
+    print(f"{current_user=}")
+
     filename = yaml_file.filename
 
     # listify generator because we need to use it multiple times
