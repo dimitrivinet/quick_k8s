@@ -4,7 +4,6 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app import dummy_db
 from app.utils import auth
 
 
@@ -15,9 +14,7 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 
 @router.post("/token", response_model=auth.Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = auth.authenticate_user(
-        dummy_db.fake_users_db, form_data.username, form_data.password
-    )
+    user = auth.authenticate_user(form_data.username, form_data.password)
 
     if not user:
         raise HTTPException(

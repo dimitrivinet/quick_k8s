@@ -1,4 +1,5 @@
 # pylint: disable=too-few-public-methods
+from enum import Enum
 import os
 from datetime import datetime, timedelta
 from typing import Literal, Optional, Union
@@ -7,9 +8,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import APIKeyQuery, OAuth2PasswordBearer
 from jose import jwt, JWTError
 from passlib.context import CryptContext
-from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from pydantic import BaseModel, validator  # pylint: disable=no-name-in-module
 
-from app import dummy_db
+from app import database
 
 # # to get a string like this run:
 # # openssl rand -hex 32
@@ -21,6 +22,15 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 api_key_scheme = APIKeyQuery(name="api_key")
+
+
+class Role(Enum):
+    """Roles class."""
+
+    ADMIN = 1
+    NEW = 2
+    EXPERIENCED = 3
+    TRUSTED = 4
 
 
 class Token(BaseModel):
@@ -39,16 +49,36 @@ class TokenData(BaseModel):
 class User(BaseModel):
     """User class."""
 
+    first_name: str
+    last_name: str
     username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = False
+    email: str
+    disabled: bool
+    role: str
+
+    @validator("role")
+    def validate_role(cls, v):  # pylint: disable=no-self-argument,no-self-use
+        """Check if role is an allowed Role."""
+
+        role_names = [role.name for role in Role]
+
+        if v.upper() in role_names:
+            return v.upper()
+
+        raise ValueError(f"Role {v} is not and allowed Role.")
 
 
 class UserInDB(User):
-    """Representation of user in database."""
+    """Representation of user in database. Password is hashed at init."""
 
     hashed_password: str
+
+
+class Password(BaseModel):
+    """Representation of a password."""
+
+    password: str
+    is_hashed: bool
 
 
 def verify_password(plain_password, hashed_password):
@@ -63,26 +93,28 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def get_user(db, username: Optional[str]) -> Optional[UserInDB]:
+def get_user(username: Optional[str]) -> Optional[UserInDB]:
     """Get user data from username."""
 
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
+    user = database.users.get_user(username)
+    if user is None:
+        return None
 
-    return None
+    user_dict = user.dict()
+    user_dict["role"] = Role(user_dict["role"]).name
+
+    return UserInDB(**user_dict)
 
 
-def authenticate_user(
-    fake_db, username: str, password: str
-) -> Union[User, Literal[False]]:
+def authenticate_user(username: str, password: str) -> Union[User, Literal[False]]:
     """Authenticate user from provided username and passord.
     Returns False if user doesn't exist or the password is incorrect."""
 
-    user = get_user(fake_db, username)
+    user = get_user(username)
 
     if user is None:
         return False
+
     if not verify_password(password, user.hashed_password):
         return False
 
@@ -124,7 +156,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     except JWTError:
         raise credentials_exception from JWTError
 
-    user = get_user(dummy_db.fake_users_db, username=token_data.username)
+    user = get_user(username=token_data.username)
 
     if user is None:
         raise credentials_exception
@@ -132,10 +164,25 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     return User(**user.dict())
 
 
-async def get_current_active_user(current_user: UserInDB = Depends(get_current_user)) -> UserInDB:
+async def get_current_active_user(
+    current_user: UserInDB = Depends(get_current_user),
+) -> UserInDB:
     """Check if current user is active (not disabled)."""
 
     if current_user.disabled:
         raise HTTPException(status_code=400, detail="Inactive user")
+
+    return current_user
+
+
+async def current_user_is_admin(
+    current_user: UserInDB = Depends(get_current_active_user),
+):
+    """Checks if current user is active and has admin role."""
+
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
+        )
 
     return current_user

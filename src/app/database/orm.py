@@ -2,6 +2,8 @@
 from sqlalchemy.orm import registry
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 
+from app.utils import auth
+
 mapper_registry = registry()
 Base = mapper_registry.generate_base()
 
@@ -14,10 +16,37 @@ class User(Base):  # type: ignore
     id = Column(Integer, primary_key=True, autoincrement=True)
     first_name = Column(String(50))
     last_name = Column(String(50))
+    username = Column(String(100), unique=True)
     email = Column(String(100))
     hashed_password = Column(String(256))
     disabled = Column(Boolean())
-    role = Column(String(50), ForeignKey("roles.name"))
+    role = Column(Integer, ForeignKey("roles.id"))
+
+    def dict(self) -> dict:
+        """Returns a dict representation of the user."""
+
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "username": self.username,
+            "email": self.email,
+            "hashed_password": self.hashed_password,
+            "disabled": self.disabled,
+            "role": self.role,
+        }
+
+    def __repr__(self):
+        return (
+            f"User(id={self.id}, "
+            f"first_name={self.first_name}, "
+            f"last_name={self.last_name}, "
+            f"username={self.username}, "
+            f"email={self.email}, "
+            f"hashed_password={self.hashed_password}, "
+            f"disabled={self.disabled}, "
+            f"role={self.role})"
+        )
 
 
 class Role(Base):  # type: ignore
@@ -25,4 +54,5 @@ class Role(Base):  # type: ignore
 
     __tablename__ = "roles"
 
-    name = Column(String(50), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    name = Column(String(50))

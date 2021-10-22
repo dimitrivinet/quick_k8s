@@ -10,8 +10,10 @@ from app.utils import auth
 logger = logging.getLogger("uvicorn.error")
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
-database.setup_engine(DATABASE_URL, echo=True)
+database.setup_engine(DATABASE_URL, echo=False)
 database.create_tables()
+if database.roles.populate_roles_table():
+    logger.info("Populated Roles table.")
 logger.info("Setup database.")
 
 
