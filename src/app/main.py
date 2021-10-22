@@ -2,18 +2,17 @@
 import os
 import logging
 
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 
 from app import routers, database
-from app.utils import auth
 
 logger = logging.getLogger("uvicorn.error")
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 database.setup_engine(DATABASE_URL, echo=False)
 database.create_tables()
-if database.roles.populate_roles_table():
-    logger.info("Populated Roles table.")
+if not database.roles.populate_roles_table():
+    logger.info("Kept roles table from previous init.")
 logger.info("Setup database.")
 
 
@@ -25,11 +24,4 @@ app.include_router(routers.router)
 @app.get("/")
 async def home():
 
-    return {"msg": "Welcome"}
-
-
-@app.get("/users/me", response_model=auth.User, tags=["Test"])
-async def read_users_me(
-    current_user: auth.User = Depends(auth.get_current_active_user),
-):
-    return current_user
+    return {"msg": "Welcome to the quick_k8s API. More info @ /docs"}

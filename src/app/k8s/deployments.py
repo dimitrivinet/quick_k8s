@@ -10,7 +10,7 @@ if os.getenv("KUBERNETES_SERVICE_HOST") is None:
 else:
     config.load_incluster_config()
 
-UNTOUCHABLE_DEPLOYMENTS = ["quick-k8s-manager-deployment"]
+UNTOUCHABLE_DEPLOYMENTS = ["quick-k8s-manager-deployment", "mysql"]
 
 k8s_apps_v1 = client.AppsV1Api()
 

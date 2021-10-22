@@ -180,7 +180,8 @@ async def current_user_is_admin(
 ):
     """Checks if current user is active and has admin role."""
 
-    if current_user.role != "admin":
+    print(current_user.role, Role.ADMIN.name)
+    if current_user.role != Role.ADMIN.name:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
         )

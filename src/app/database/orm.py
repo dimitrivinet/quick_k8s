@@ -2,8 +2,6 @@
 from sqlalchemy.orm import registry
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 
-from app.utils import auth
-
 mapper_registry = registry()
 Base = mapper_registry.generate_base()
 

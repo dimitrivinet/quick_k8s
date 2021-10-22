@@ -5,13 +5,11 @@ import sqlalchemy.exc
 from app import database
 from app.utils import auth
 
-router = APIRouter(prefix="/db", tags=["database"])
+router = APIRouter(prefix="/db", tags=["admin | database"])
 
 
 @router.get("/users")
-def get_users(
-    _: auth.UserInDB = Depends(auth.current_user_is_admin)
-):
+def get_users(_: auth.UserInDB = Depends(auth.current_user_is_admin)):
     """Get all users in database."""
 
     session = database.get_session()
@@ -33,7 +31,7 @@ def add_user(
     if not password.is_hashed:
         hashed_password = auth.get_password_hash(password.password)
     else:
-        hashed_password=password.password
+        hashed_password = password.password
 
     role = auth.Role[user.role]
 
@@ -56,10 +54,7 @@ def add_user(
 
 
 @router.get("/user/{user_id}")
-def get_one_user(
-    user_id: int,
-    _: auth.UserInDB = Depends(auth.current_user_is_admin)
-):
+def get_one_user(user_id: int, _: auth.UserInDB = Depends(auth.current_user_is_admin)):
     """Get one user by id."""
 
     user = database.users.get_user(user_id)
@@ -72,12 +67,8 @@ def get_one_user(
     return {"user": user}
 
 
-
 @router.delete("/user/{user_id}")
-def delete_user(
-    user_id: int,
-    _: auth.UserInDB = Depends(auth.current_user_is_admin)
-):
+def delete_user(user_id: int, _: auth.UserInDB = Depends(auth.current_user_is_admin)):
     """Delete a user."""
 
     user = database.users.get_user(user_id)
