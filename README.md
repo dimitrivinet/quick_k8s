@@ -1,3 +1,7 @@
 # quick-k8s
 
-[Schemas location](https://github.com/yannh/kubernetes-json-schema)
+## Requirements
+
+- A Kubernetes cluster (local or distant)
+
+- Docker

@@ -11,11 +11,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, validator  # pylint: disable=no-name-in-module
 
 from app import database
-
-# # to get a string like this run:
-# # openssl rand -hex 32
-SECRET_KEY = os.getenv("SECRET_KEY", "")
-ALGORITHM = os.getenv("ALGORITHM", "")
+from app.config import cfg
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -132,7 +128,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + timedelta(minutes=15)
 
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, cfg.SECRET_KEY, algorithm=cfg.ALGORITHM)
 
     return encoded_jwt
 
@@ -147,7 +143,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     )
 
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, cfg.SECRET_KEY, algorithms=[cfg.ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception

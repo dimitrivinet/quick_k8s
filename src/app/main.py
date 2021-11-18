@@ -1,15 +1,14 @@
 # pylint: disable=missing-docstring
-import os
 import logging
 
 from fastapi import FastAPI
 
 from app import routers, database
+from app.config import cfg
 
 logger = logging.getLogger("uvicorn.error")
 
-DATABASE_URL = os.getenv("DATABASE_URL", "")
-database.setup_engine(DATABASE_URL, echo=False)
+database.setup_engine(cfg.DATABASE_URL, echo=False)
 database.create_tables()
 if not database.roles.populate_roles_table():
     logger.info("Kept roles table from previous init.")

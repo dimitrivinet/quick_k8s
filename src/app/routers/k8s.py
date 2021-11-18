@@ -9,9 +9,8 @@ import yaml
 
 from app import dummy_db, k8s
 from app.utils import auth
+from app.config import cfg
 
-
-TARGET_NAMESPACE = os.getenv("TARGET_NAMESPACE", "")
 
 router = APIRouter(prefix="/k8s", tags=["k8s"])
 
@@ -23,7 +22,7 @@ class DeploymentEncoder(json.JSONEncoder):
 
 @router.get("/deployments")
 async def get_all_deployments():
-    deployment_list: V1DeploymentList = k8s.get_all_deployments(TARGET_NAMESPACE)
+    deployment_list: V1DeploymentList = k8s.get_all_deployments(cfg.TARGET_NAMESPACE)
     # print(json.dumps(deployments.to_dict(), cls=DeploymentEncoder))
     # print(type(deployments))
     deployments: List[V1Deployment] = deployment_list.items
