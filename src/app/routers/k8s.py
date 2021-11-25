@@ -1,5 +1,3 @@
-import json
-import os
 from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
@@ -15,16 +13,9 @@ from app.config import cfg
 router = APIRouter(prefix="/k8s", tags=["k8s"])
 
 
-class DeploymentEncoder(json.JSONEncoder):
-    def default(self, obj):
-        return repr(obj)
-
-
 @router.get("/deployments")
 async def get_all_deployments():
     deployment_list: V1DeploymentList = k8s.get_all_deployments(cfg.TARGET_NAMESPACE)
-    # print(json.dumps(deployments.to_dict(), cls=DeploymentEncoder))
-    # print(type(deployments))
     deployments: List[V1Deployment] = deployment_list.items
 
     return {"deployments": [deployment.metadata.name for deployment in deployments]}
@@ -44,7 +35,7 @@ async def create_deployment(
     yamls_as_dicts = list(yaml.safe_load_all(yaml_file.file))
 
     for doc in yamls_as_dicts:
-        validation_result = k8s.validate(doc, TARGET_NAMESPACE)
+        validation_result = k8s.validate(doc, cfg.TARGET_NAMESPACE)
 
         if not validation_result.result:
             raise HTTPException(
@@ -54,13 +45,13 @@ async def create_deployment(
     deployed = []
     for doc in yamls_as_dicts:
         # print(doc)
-        deployment_result = k8s.deploy(doc, TARGET_NAMESPACE)
+        deployment_result = k8s.deploy(doc, cfg.TARGET_NAMESPACE)
 
         if not deployment_result.result:
             raise HTTPException(
                 # pylint: disable=no-member
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=deployment_result.reason,  #  type: ignore
+                detail=deployment_result.reason,  # type: ignore
             )
 
         deployed_name = deployment_result.info.metadata.name  # type: ignore
@@ -77,6 +68,6 @@ async def create_deployment(
 
 @router.delete("/deployments/{deployment_name}")
 def delete_deployment(deployment_name: str):
-    ret, reason = k8s.delete_deployment(deployment_name, TARGET_NAMESPACE)
+    ret, reason = k8s.delete_deployment(deployment_name, cfg.TARGET_NAMESPACE)
 
     return {"status": ret, "reason": reason}
