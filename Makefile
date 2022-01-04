@@ -14,3 +14,7 @@ build:
 
 push:
 	docker push ${IM_NAME}:${IM_TAG}
+
+refresh_deployment:
+	kubectl delete -f k8s/deployment.yml
+	kubectl apply -f k8s/deployment.yml

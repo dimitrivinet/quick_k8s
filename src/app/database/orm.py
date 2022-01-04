@@ -1,3 +1,7 @@
+"""
+The tables' definitions.
+"""
+
 # pylint: disable=too-few-public-methods
 from sqlalchemy.orm import registry
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey

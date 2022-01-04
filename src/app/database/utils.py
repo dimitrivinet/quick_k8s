@@ -1,8 +1,12 @@
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, Session
+import sqlalchemy.exc
 
 from app.database.orm import Base
+from app.config import cfg
+from app import database
+from app.utils import auth
 
 _engine: Engine
 _session = sessionmaker(autocommit=False, expire_on_commit=True)

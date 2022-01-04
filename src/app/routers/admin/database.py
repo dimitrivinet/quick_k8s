@@ -12,8 +12,8 @@ router = APIRouter(prefix="/db", tags=["admin | database"])
 def get_users(_: auth.UserInDB = Depends(auth.current_user_is_admin)):
     """Get all users in database."""
 
-    session = database.get_session()
-    users = session.query(database.User)
+    session = database.utils.get_session()
+    users = session.query(database.orm.User)
 
     all_users = list(users)
 
@@ -35,7 +35,7 @@ def add_user(
 
     role = auth.Role[user.role]
 
-    new_user = database.User(
+    new_user = database.orm.User(
         first_name=user.first_name,
         last_name=user.last_name,
         username=user.username,

@@ -11,5 +11,3 @@ spec:
       protocol: TCP
       port: 8000
       targetPort: 8000
-  externalIPs:
-    - 172.21.72.106

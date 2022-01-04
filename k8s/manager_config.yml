@@ -26,7 +26,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: quick-k8s-manager
-  namespace: quick-k8s
+  namespace: quick-k8s-manager
 roleRef:
   kind: ClusterRole
   name: quick-k8s-manager
