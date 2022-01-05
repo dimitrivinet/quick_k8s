@@ -1,5 +1,7 @@
 import logging
 
+import sqlalchemy
+
 from app import database
 from app.config import cfg
 from app.utils import auth
@@ -11,9 +13,10 @@ def pre_init():
     # setup database engine and tables if first run
     database.utils.setup_engine(cfg.DATABASE_URL, echo=False)
     database.utils.create_tables()
-    if not database.roles.populate_roles_table():
+    try:
+        database.roles.populate_roles_table()
+    except sqlalchemy.exc.IntegrityError:
         logger.info("Kept roles table from previous init.")
-    logger.info("Setup database.")
 
     # Set default admin profile for first run
     hashed_password = auth.get_password_hash(cfg.DEFAULT_ADMIN_PASSWORD)
@@ -28,5 +31,11 @@ def pre_init():
         role=auth.Role.ADMIN.value,
     )
 
-    database.users.add_user(default_admin)
-    logger.info("Added default admin profile.")
+    logger.info("Adding default admin profile.")
+    try:
+        database.users.add_user(default_admin)
+        logger.info("Added default admin profile.")
+    except sqlalchemy.exc.IntegrityError:
+        logger.info("Default admin was already inserted.")
+
+    logger.info("Setup database.")

@@ -1,5 +1,3 @@
-import sqlalchemy.exc
-
 from app.database import orm
 from app.database.utils import get_session
 from app.utils import auth
@@ -13,8 +11,4 @@ def populate_roles_table():
     session = get_session()
     session.add_all(all_roles)
 
-    try:
-        session.commit()
-        return True
-    except sqlalchemy.exc.IntegrityError:
-        return False
+    session.commit()

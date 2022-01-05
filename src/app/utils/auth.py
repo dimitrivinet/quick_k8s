@@ -1,6 +1,5 @@
 # pylint: disable=too-few-public-methods
 from enum import Enum
-import os
 from datetime import datetime, timedelta
 from typing import Literal, Optional, Union
 
@@ -89,7 +88,7 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def get_user(username: Optional[str]) -> Optional[UserInDB]:
+def get_user(username: str) -> Optional[UserInDB]:
     """Get user data from username."""
 
     user = database.users.get_user(username)
@@ -102,7 +101,10 @@ def get_user(username: Optional[str]) -> Optional[UserInDB]:
     return UserInDB(**user_dict)
 
 
-def authenticate_user(username: str, password: str) -> Union[User, Literal[False]]:
+def authenticate_user(
+    username: str,
+    password: str,
+) -> Union[User, Literal[False]]:
     """Authenticate user from provided username and passord.
     Returns False if user doesn't exist or the password is incorrect."""
 
@@ -117,7 +119,10 @@ def authenticate_user(username: str, password: str) -> Union[User, Literal[False
     return User(**user.dict())
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    data: dict,
+    expires_delta: Optional[timedelta] = None,
+) -> str:
     """Create access token at login."""
 
     to_encode = data.copy()
@@ -128,7 +133,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + timedelta(minutes=15)
 
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, cfg.SECRET_KEY, algorithm=cfg.ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode,
+        cfg.SECRET_KEY,
+        algorithm=cfg.ALGORITHM,
+    )
 
     return encoded_jwt
 
@@ -151,6 +160,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception from JWTError
+
+    if token_data.username is None:
+        raise credentials_exception
 
     user = get_user(username=token_data.username)
 
@@ -176,7 +188,6 @@ async def current_user_is_admin(
 ):
     """Checks if current user is active and has admin role."""
 
-    print(current_user.role, Role.ADMIN.name)
     if current_user.role != Role.ADMIN.name:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"

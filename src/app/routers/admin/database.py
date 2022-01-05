@@ -20,6 +20,35 @@ def get_users(_: auth.UserInDB = Depends(auth.current_user_is_admin)):
     return {"all_users": all_users}
 
 
+@router.get("/roles")
+def get_roles(_: auth.UserInDB = Depends(auth.current_user_is_admin)):
+    """Get all roles in database."""
+
+    session = database.utils.get_session()
+    roles = session.query(database.orm.Role)
+
+    all_roles = list(roles)
+
+    return {"all_roles": all_roles}
+
+
+@router.get("/resources")
+def get_resources(_: auth.UserInDB = Depends(auth.current_user_is_admin)):
+    """Get all resources in database."""
+
+    session = database.utils.get_session()
+    resources = session.query(database.orm.Resource)
+
+    ret: dict = {"online": [], "deleted": []}
+    for resource in resources:
+        if resource.deleted_timestamp is not None:
+            ret["deleted"].append(resource)
+        else:
+            ret["online"].append(resource)
+
+    return {"all_resources": ret}
+
+
 @router.post("/users")
 def add_user(
     user: auth.User,

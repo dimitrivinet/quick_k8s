@@ -64,14 +64,7 @@ def deploy(data: dict, target_namespace: str) -> DeploymentResult:
     except client.exceptions.ApiException as e:
         print(f"EXCEPTION! {e}")
         print(traceback.format_exc())
-        # body = json.loads(e.body)
 
-        # error_details = {
-        #     "message": "Deployment failed.",
-        #     "causes": body["details"]["causes"]
-        # }
-
-        # return DeploymentResult(False, error_details)
         return DeploymentResult(False, "")
 
     return DeploymentResult(True, result)

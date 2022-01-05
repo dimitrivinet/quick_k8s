@@ -31,7 +31,7 @@ spec:
           - name: DEFAULT_ADMIN_EMAIL
             value: "admin@admin.com"
           - name: DEFAULT_ADMIN_PASSWORD
-            value: "$2b$12$Ttarbrz9ZwRgeLTTsZ49L.KsJsjASQDU1VBlAvwm0vzAKQQa/9GKC"
+            value: "admin"
 
           - name: SECRET_KEY
             value: "6fa46d584e94e64322e9951378c2daccb3775107e8c1cc4bc4a28f7f366f9bde"

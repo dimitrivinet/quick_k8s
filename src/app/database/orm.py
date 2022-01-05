@@ -4,7 +4,7 @@ The tables' definitions.
 
 # pylint: disable=too-few-public-methods
 from sqlalchemy.orm import registry
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 
 mapper_registry = registry()
 Base = mapper_registry.generate_base()
@@ -58,3 +58,17 @@ class Role(Base):  # type: ignore
 
     id = Column(Integer, primary_key=True)
     name = Column(String(50))
+
+
+class Resource(Base):  # type: ignore
+    """Kubernetes resource model."""
+
+    __tablename__ = "resources"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    owner = Column(Integer, ForeignKey("users.id"))
+    name = Column(String(50))
+    type = Column(String(50))
+    created_timestamp = Column(DateTime(timezone=False))
+    modified_timestamp = Column(DateTime(timezone=False), nullable=True)
+    deleted_timestamp = Column(DateTime(timezone=False), nullable=True)

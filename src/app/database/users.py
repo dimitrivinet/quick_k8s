@@ -33,7 +33,7 @@ def get_user(username: str) -> Optional[User]:
 
 
 @get_user.register
-def _(user_id: int) -> Optional[User]:
+def _(user_id: int) -> Optional[User]:  # type: ignore
     """Get user by id."""
 
     session = get_session()
