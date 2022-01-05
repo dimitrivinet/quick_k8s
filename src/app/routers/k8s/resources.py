@@ -112,7 +112,7 @@ def delete_deployment(
     if resource_db is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unknown resource in database. (resource: {resource_name})",
+            detail=(f"Unknown resource {resource_name} in database."),
         )
 
     if resource_db.type.lower() != resource_type:

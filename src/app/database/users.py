@@ -1,4 +1,4 @@
-from functools import singledispatch
+# from functools import singledispatch
 from typing import Optional
 
 from app.database.orm import User
@@ -21,7 +21,7 @@ def delete_user(user: User) -> None:
     session.commit()
 
 
-@singledispatch
+# @singledispatch
 def get_user(username: str) -> Optional[User]:
     """Get user by username."""
 
@@ -32,12 +32,12 @@ def get_user(username: str) -> Optional[User]:
     return user
 
 
-@get_user.register
-def _(user_id: int) -> Optional[User]:  # type: ignore
-    """Get user by id."""
+# @get_user.register
+# def _(user_id: int) -> Optional[User]:  # type: ignore
+#     """Get user by id."""
 
-    session = get_session()
-    user = session.query(User).filter_by(id=user_id).first()
-    session.close()
+#     session = get_session()
+#     user = session.query(User).filter_by(id=user_id).first()
+#     session.close()
 
-    return user
+#     return user

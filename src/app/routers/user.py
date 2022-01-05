@@ -22,7 +22,7 @@ async def get_user_resources(
 
     resources = database.resources.get_user_resources(user_db.id)
 
-    ret = {"online": [], "deleted": []}
+    ret: dict = {"online": [], "deleted": []}
     for resource in resources:
         if resource.deleted_timestamp is not None:
             ret["deleted"].append(resource)

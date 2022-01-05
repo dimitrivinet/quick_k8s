@@ -77,34 +77,43 @@ def add_user(
     try:
         database.users.add_user(new_user)
     except sqlalchemy.exc.IntegrityError as e:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=e.detail) from None
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            detail=e.detail,
+        ) from None
 
     return {"result": "Success"}
 
 
-@router.get("/user/{user_id}")
-def get_one_user(user_id: int, _: auth.UserInDB = Depends(auth.current_user_is_admin)):
+@router.get("/user/{username}")
+def get_one_user(
+    username: str,
+    _: auth.UserInDB = Depends(auth.current_user_is_admin),
+):
     """Get one user by id."""
 
-    user = database.users.get_user(user_id)
+    user = database.users.get_user(username)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No user with id {user_id} in database.",
+            detail=f"No user with username {username} in database.",
         )
 
     return {"user": user}
 
 
-@router.delete("/user/{user_id}")
-def delete_user(user_id: int, _: auth.UserInDB = Depends(auth.current_user_is_admin)):
+@router.delete("/user/{username}")
+def delete_user(
+    username: str,
+    _: auth.UserInDB = Depends(auth.current_user_is_admin),
+):
     """Delete a user."""
 
-    user = database.users.get_user(user_id)
+    user = database.users.get_user(username)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No user with id {user_id} in database.",
+            detail=f"No user with username {username} in database.",
         )
 
     database.users.delete_user(user)
